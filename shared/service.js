@@ -17,6 +17,9 @@ const fail = (status, message) => {
   throw new ServiceError(status, message);
 };
 
+const isApproved = (c) => (c.status ?? 'approved') === 'approved';
+export const CIRCLE_LIMITS = { titleMin: 3, titleMax: 60, durations: [45, 60, 90], capacityMin: 3, capacityMax: 12, leadDays: 1, maxDaysAhead: 60 };
+
 const newId = (prefix) => `${prefix}-${globalThis.crypto.randomUUID().slice(0, 12)}`;
 const TOPIC_KEYS = TOPICS.map((t) => t.key);
 const FORMAT_KEYS = FORMATS.map((f) => f.key);
@@ -106,6 +109,7 @@ export function createService(repo, { now = () => new Date() } = {}) {
       await user(actorId);
       const t = now();
       return (await repo.find('circles'))
+        .filter((c) => isApproved(c) || c.proposedBy === actorId)
         .filter((c) => new Date(c.startsAt).getTime() + c.durationMin * 60000 > t.getTime())
         .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
     },
@@ -113,6 +117,7 @@ export function createService(repo, { now = () => new Date() } = {}) {
     async joinCircle(actorId, circleId) {
       const me = await user(actorId);
       const circle = (await repo.get('circles', circleId)) ?? fail(404, 'Circle not found.');
+      if (!isApproved(circle)) fail(409, 'This circle is waiting for a coordinator to approve it.');
       const check = canJoin(me, circle, now());
       if (!check.ok) fail(409, check.reason);
       const updated = await repo.update('circles', circleId, { members: [...circle.members, actorId] });
@@ -130,6 +135,39 @@ export function createService(repo, { now = () => new Date() } = {}) {
         await repo.update('conversations', chat.id, { participants: chat.participants.filter((p) => p !== actorId) });
       }
       return updated;
+    },
+
+    // A member suggests a new circle. It stays private to them until a coordinator approves it.
+    async proposeCircle(actorId, body = {}) {
+      await user(actorId);
+      const L = CIRCLE_LIMITS;
+      const title = String(body.title ?? '').trim();
+      if (title.length < L.titleMin || title.length > L.titleMax) fail(400, `Give the circle a name of ${L.titleMin} to ${L.titleMax} characters.`);
+      if (!TOPIC_KEYS.includes(body.topic)) fail(400, 'Choose a topic.');
+      const start = new Date(body.startsAt);
+      const lead = (start - now()) / 86400000;
+      if (Number.isNaN(start.getTime()) || lead < L.leadDays) fail(400, 'Pick a start time at least a day from now, so a coordinator can review it.');
+      if (lead > L.maxDaysAhead) fail(400, `Pick a date within the next ${L.maxDaysAhead} days.`);
+      const durationMin = Number(body.durationMin);
+      if (!L.durations.includes(durationMin)) fail(400, 'Choose a length of 45, 60 or 90 minutes.');
+      const capacity = Number(body.capacity);
+      if (!Number.isInteger(capacity) || capacity < L.capacityMin || capacity > L.capacityMax) fail(400, `Circles can have ${L.capacityMin} to ${L.capacityMax} seats.`);
+      const pending = (await repo.find('circles', { proposedBy: actorId })).filter((c) => c.status === 'proposed');
+      if (pending.length >= 2) fail(409, 'You already have two circles waiting for approval.');
+      return repo.insert('circles', {
+        id: newId('c'),
+        title,
+        topic: body.topic,
+        description: String(body.description ?? '').trim().slice(0, 280),
+        startsAt: start.toISOString(),
+        durationMin,
+        capacity,
+        facilitatorId: null,
+        members: [actorId],
+        status: 'proposed',
+        proposedBy: actorId,
+        proposedAt: now().toISOString(),
+      });
     },
 
     // ----- Messages -----
@@ -252,14 +290,19 @@ export function createService(repo, { now = () => new Date() } = {}) {
     // ----- Coordinator tools -----
     async overview(actorId) {
       await coordinator(actorId);
-      const [users, circles, referrals, reports, messages] = await Promise.all([
+      const [users, allCircles, referrals, reports, messages] = await Promise.all([
         repo.find('users'),
-        svc.circles(actorId),
+        repo.find('circles'),
         repo.find('referrals'),
         repo.find('reports'),
         repo.find('messages', { flagged: true }),
       ]);
       const byId = Object.fromEntries(users.map((u) => [u.id, u]));
+      const upcoming = allCircles
+        .filter((c) => new Date(c.startsAt).getTime() + c.durationMin * 60000 > now().getTime())
+        .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt));
+      const circles = upcoming.filter(isApproved);
+      const proposals = upcoming.filter((c) => c.status === 'proposed');
       const reportMessages = await Promise.all(reports.map((r) => (r.messageId ? repo.get('messages', r.messageId) : null)));
       return {
         stats: {
@@ -270,6 +313,7 @@ export function createService(repo, { now = () => new Date() } = {}) {
         volunteers: users.filter((u) => u.role === 'volunteer').map(publicProfile),
         people: Object.fromEntries(users.map((u) => [u.id, { id: u.id, displayName: u.displayName, role: u.role }])),
         circles,
+        proposals,
         referrals: referrals.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt)),
         counselors: await repo.find('counselors'),
         reports: reports
@@ -281,12 +325,28 @@ export function createService(repo, { now = () => new Date() } = {}) {
     async assignFacilitator(actorId, circleId, volunteerId) {
       await coordinator(actorId);
       const circle = (await repo.get('circles', circleId)) ?? fail(404, 'Circle not found.');
+      if (!isApproved(circle)) fail(409, 'Approve this circle before assigning a facilitator.');
       const users = await repo.find('users', { role: 'volunteer' });
-      const ok = eligibleFacilitators(circle, users, await repo.find('circles')).some((v) => v.id === volunteerId);
+      const ok = eligibleFacilitators(circle, users, (await repo.find('circles')).filter(isApproved)).some((v) => v.id === volunteerId);
       if (!ok) fail(409, 'That volunteer is not trained for this topic, not free then, or already leading another circle.');
       const updated = await repo.update('circles', circleId, { facilitatorId: volunteerId });
       await addToCircleChat(updated, volunteerId);
       return updated;
+    },
+
+    async reviewCircle(actorId, circleId, decision, note = '') {
+      const me = await coordinator(actorId);
+      const circle = (await repo.get('circles', circleId)) ?? fail(404, 'Circle not found.');
+      if (circle.status !== 'proposed') fail(409, 'This circle has already been reviewed.');
+      if (!['approve', 'decline'].includes(decision)) fail(400, 'Approve or decline the circle.');
+      const reviewed = await repo.update('circles', circleId, {
+        status: decision === 'approve' ? 'approved' : 'declined',
+        reviewedBy: me.id,
+        reviewedAt: now().toISOString(),
+        reviewNote: String(note ?? '').trim().slice(0, 280),
+      });
+      if (decision === 'approve') await addToCircleChat(reviewed, circle.proposedBy);
+      return reviewed;
     },
 
     async moveReferral(actorId, referralId, status, note = '') {

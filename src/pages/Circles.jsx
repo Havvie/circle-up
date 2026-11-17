@@ -4,7 +4,8 @@ import { useAsync } from '../lib/useAsync.js';
 import { TOPICS, slotOf } from '../../shared/constants.js';
 import { seatsLeft } from '../../shared/scheduling.js';
 import { dayKey, fmtDay, fmtTime } from '../lib/format.js';
-import { ErrorNote, Loading, TopicChip, Empty } from '../components/ui.jsx';
+import { ErrorNote, Loading, TopicChip, Empty, TopicResources } from '../components/ui.jsx';
+import StartCircle from '../components/StartCircle.jsx';
 
 export default function Circles({ user }) {
   const { data, loading, error, setData } = useAsync(async () => {
@@ -14,6 +15,8 @@ export default function Circles({ user }) {
   const [filter, setFilter] = useState(user.topics?.length ? 'mine' : 'all');
   const [busy, setBusy] = useState(null);
   const [err, setErr] = useState(null);
+  const [starting, setStarting] = useState(false);
+  const [notice, setNotice] = useState(null);
 
   const shown = useMemo(() => {
     if (!data) return [];
@@ -44,8 +47,29 @@ export default function Circles({ user }) {
 
   return (
     <div>
-      <h1>Support circles</h1>
-      <p className="lead muted">Small groups of up to 10, led by a trained peer facilitator. Join by video; cameras optional.</p>
+      <div className="page-head">
+        <div>
+          <h1>Support circles</h1>
+          <p className="lead muted">Small groups led by a trained peer facilitator. Join by video; cameras optional.</p>
+        </div>
+        {!starting && (
+          <button className="btn btn-primary" onClick={() => { setStarting(true); setNotice(null); }}>
+            + Start a circle
+          </button>
+        )}
+      </div>
+      {starting && (
+        <StartCircle
+          defaultTopic={TOPICS.some((t) => t.key === filter) ? filter : user.topics?.[0]}
+          onCancel={() => setStarting(false)}
+          onCreated={(c) => {
+            setStarting(false);
+            setData({ ...data, circles: [...data.circles, c].sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt)) });
+            setNotice(`Thanks! "${c.title}" is waiting for a coordinator to approve it. It shows below, marked as pending.`);
+          }}
+        />
+      )}
+      {notice && <p className="card notice-card" role="status">{notice}</p>}
       <div className="filters" role="group" aria-label="Filter circles">
         <button className={filter === 'mine' ? 'filter on' : 'filter'} onClick={() => setFilter('mine')} aria-pressed={filter === 'mine'}>For you</button>
         <button className={filter === 'all' ? 'filter on' : 'filter'} onClick={() => setFilter('all')} aria-pressed={filter === 'all'}>All</button>
@@ -56,6 +80,7 @@ export default function Circles({ user }) {
         ))}
       </div>
       <ErrorNote error={error ?? err} />
+      {TOPICS.some((t) => t.key === filter) && <TopicResources topic={filter} />}
       {loading ? (
         <Loading />
       ) : !byDay.length ? (
@@ -70,8 +95,10 @@ export default function Circles({ user }) {
                 const left = seatsLeft(c);
                 const facilitator = c.facilitatorId ? data.people[c.facilitatorId] : null;
                 const fits = user.availability?.includes(slotOf(c.startsAt));
+                const pending = c.status === 'proposed';
+                const declined = c.status === 'declined';
                 return (
-                  <article key={c.id} className={joined ? 'card circle-card joined' : 'card circle-card'}>
+                  <article key={c.id} className={`card circle-card ${pending || declined ? 'pending' : joined ? 'joined' : ''}`}>
                     <div className="circle-time">
                       <strong>{fmtTime(c.startsAt)}</strong>
                       <span className="muted small">{c.durationMin} min</span>
@@ -82,11 +109,22 @@ export default function Circles({ user }) {
                         <TopicChip topic={c.topic} />
                       </div>
                       <p className="muted small">{c.description}</p>
+                      {(pending || declined) && (
+                        <p className="small">
+                          {pending ? <span className="status-warning">! Waiting for coordinator approval</span> : <span className="status-critical">✕ Not approved{c.reviewNote ? `: ${c.reviewNote}` : ''}</span>}
+                        </p>
+                      )}
+                      {c.topic === 'sexual-health' && filter !== c.topic && <TopicResources topic={c.topic} compact />}
                       <p className="small">
                         {facilitator ? <>Led by <strong>{facilitator.displayName}</strong></> : <span className="muted">Facilitator to be confirmed</span>}
                         {fits && <span className="fit"> · ✓ Fits your schedule</span>}
                       </p>
                     </div>
+                    {pending || declined ? (
+                      <div className="circle-actions">
+                        <span className="small muted">You suggested this circle</span>
+                      </div>
+                    ) : (
                     <div className="circle-actions">
                       <div className="seats" aria-label={`${c.members.length} of ${c.capacity} seats taken`}>
                         <div className="seats-bar"><div style={{ width: `${(c.members.length / c.capacity) * 100}%` }} /></div>
@@ -104,6 +142,7 @@ export default function Circles({ user }) {
                         </button>
                       )}
                     </div>
+                    )}
                   </article>
                 );
               })}

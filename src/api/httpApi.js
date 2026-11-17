@@ -80,6 +80,7 @@ export const httpApi = {
   matches: () => get('/matches'),
   block: (id) => post(`/people/${id}/block`),
   circles: () => get('/circles'),
+  proposeCircle: (body) => post('/circles', body),
   joinCircle: (id) => post(`/circles/${id}/join`),
   leaveCircle: (id) => post(`/circles/${id}/leave`),
   conversations: () => get('/conversations'),
@@ -92,6 +93,7 @@ export const httpApi = {
   requestReferral: (body) => post('/referrals', body),
   overview: () => get('/coordinator/overview'),
   assignFacilitator: (circleId, volunteerId) => post(`/coordinator/circles/${circleId}/facilitator`, { volunteerId }),
+  reviewCircle: (id, decision, note) => post(`/coordinator/circles/${id}/review`, { decision, note }),
   moveReferral: (id, status, note) => post(`/coordinator/referrals/${id}/status`, { status, note }),
   resolveReport: (id) => post(`/coordinator/reports/${id}/resolve`),
   subscribe(fn) {

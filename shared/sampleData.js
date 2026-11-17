@@ -48,7 +48,7 @@ export function buildSampleData(now = new Date()) {
     {
       id: 'u-riley', role: 'member', displayName: 'Riley K.', email: 'riley@example.com', pronouns: 'they/them',
       bio: 'Burned out nurse trying to find balance.',
-      topics: ['stress', 'anxiety', 'career'], formats: ['one-on-one'], availability: ['tue-evening', 'sat-morning', 'sun-afternoon'], blocked: [], joinedAt: at(now, -30, 9),
+      topics: ['stress', 'anxiety', 'career', 'sexual-health'], formats: ['one-on-one'], availability: ['tue-evening', 'sat-morning', 'sun-afternoon'], blocked: [], joinedAt: at(now, -30, 9),
     },
     {
       id: 'u-sofia', role: 'member', displayName: 'Sofia M.', email: 'sofia@example.com', pronouns: 'she/her',
@@ -74,7 +74,7 @@ export function buildSampleData(now = new Date()) {
     {
       id: 'u-priya', role: 'volunteer', displayName: 'Priya S.', email: 'priya@example.com', pronouns: 'she/her',
       bio: 'Mom of three, peer facilitator for new parents.', topics: ['parenting'], formats: ['group'],
-      trainedTopics: ['parenting', 'loneliness', 'anxiety'], availability: ['mon-morning', 'wed-morning', 'fri-morning', 'tue-evening', 'sun-afternoon'], blocked: [], joinedAt: at(now, -250, 9),
+      trainedTopics: ['parenting', 'loneliness', 'anxiety', 'sexual-health'], availability: ['mon-morning', 'wed-morning', 'fri-morning', 'tue-evening', 'sun-afternoon'], blocked: [], joinedAt: at(now, -250, 9),
     },
     {
       id: 'u-ben', role: 'volunteer', displayName: 'Ben A.', email: 'ben@example.com', pronouns: 'he/him',
@@ -102,8 +102,17 @@ export function buildSampleData(now = new Date()) {
     circle('c-career-2', 'Career change: networking without dread', 'career', ['sat', 0], 10, 10, 'u-marcus', ['u-dev'], 'Low-pressure practice for reaching out to people in a new field.'),
     circle('c-lonely-1', 'Making connections', 'loneliness', ['sun', 0], 14, 8, null, ['u-ana', 'u-chris', 'u-omar'], 'For anyone feeling disconnected. Start by just listening if you like.'),
     circle('c-anxiety-1', 'Anxiety: what helps', 'anxiety', ['tue', 1], 19, 10, null, ['u-riley'], 'Share tools and small wins for living with anxiety.'),
+    circle('c-relationships-1', 'Healthy relationships', 'sexual-health', ['tue', 0], 18, 8, 'u-priya', ['u-ana', 'u-riley'], 'A confidential space to talk about consent, intimacy, sexual health and healthy relationships. No judgment, and no one has to share details.'),
     circle('c-care-3', 'Caregivers check-in', 'caregiving', ['tue', 1], 19, 8, 'u-lee', ['u-maya'], 'A weekly space to share what this week asked of you, and what helped.'),
   ];
+
+  // A member-proposed circle waiting for a coordinator's approval.
+  circles.push({
+    ...circle('c-proposed-1', 'Job search accountability buddies', 'career', ['sat', 1], 11, 6, null, ['u-dev'], 'Weekly check-in to set one job search goal and report back. Started by a member.'),
+    status: 'proposed',
+    proposedBy: 'u-dev',
+    proposedAt: ago(now, 600),
+  });
 
   const counselors = [
     {
@@ -122,7 +131,7 @@ export function buildSampleData(now = new Date()) {
       formats: ['telehealth', 'in-person'], openings: [at(now, 3, 18), at(now, 5, 10), at(now, 9, 18)],
     },
     {
-      id: 'k-brooks', name: 'Tasha Brooks', credentials: 'LPC', specialties: ['anxiety', 'caregiving', 'stress'],
+      id: 'k-brooks', name: 'Tasha Brooks', credentials: 'LPC', specialties: ['anxiety', 'caregiving', 'stress', 'sexual-health'],
       approach: 'Mindfulness-based and solution-focused counseling.', insurance: ['bcbs', 'medicaid', 'aetna'], languages: ['English'],
       formats: ['telehealth'], openings: [at(now, 2, 19), at(now, 7, 19)],
     },
@@ -132,7 +141,7 @@ export function buildSampleData(now = new Date()) {
       formats: ['in-person', 'telehealth'], openings: [at(now, 8, 10)],
     },
     {
-      id: 'k-haddad', name: 'Nadia Haddad', credentials: 'LPC', specialties: ['parenting', 'loneliness', 'anxiety'],
+      id: 'k-haddad', name: 'Nadia Haddad', credentials: 'LPC', specialties: ['parenting', 'loneliness', 'anxiety', 'sexual-health'],
       approach: 'Perinatal and postpartum mental health.', insurance: ['aetna', 'bcbs'], languages: ['English', 'Arabic', 'French'],
       formats: ['telehealth'], openings: [at(now, 1, 10), at(now, 4, 14)],
     },

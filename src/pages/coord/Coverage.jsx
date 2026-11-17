@@ -10,6 +10,7 @@ export default function Coverage() {
   const [pick, setPick] = useState({});
   const [err, setErr] = useState(null);
   const [days, setDays] = useState(14);
+  const [reviewNotes, setReviewNotes] = useState({});
   if (loading || !data) return <Loading />;
   const cov = coverageReport(data.circles, data.volunteers, new Date(), days);
 
@@ -23,6 +24,16 @@ export default function Coverage() {
     }
   };
 
+  const review = async (circleId, decision) => {
+    setErr(null);
+    try {
+      await api.reviewCircle(circleId, decision, reviewNotes[circleId] ?? '');
+      reload();
+    } catch (e) {
+      setErr(e.message);
+    }
+  };
+
   return (
     <div>
       <h1>Circle coverage</h1>
@@ -30,6 +41,41 @@ export default function Coverage() {
         Every circle needs a trained peer facilitator. Only volunteers trained on the topic, free at that time and not already leading
         another circle are offered.
       </p>
+      {data.proposals.length > 0 && (
+        <section className="card proposals">
+          <h2>Circles suggested by members</h2>
+          <p className="muted small">Approve to open it for sign-ups (then assign a facilitator below), or decline with a short note the member will see.</p>
+          <ul>
+            {data.proposals.map((c) => (
+              <li key={c.id} className="proposal">
+                <div className="proposal-body">
+                  <div className="circle-title-row">
+                    <strong>{c.title}</strong>
+                    <TopicChip topic={c.topic} />
+                  </div>
+                  <p className="small muted">
+                    {fmtDayTime(c.startsAt)} · {c.durationMin} min · {c.capacity} seats · suggested by {data.people[c.proposedBy]?.displayName}
+                  </p>
+                  {c.description && <p className="small">{c.description}</p>}
+                  <p className="small">
+                    {eligibleFacilitators(c, data.volunteers, data.circles).length
+                      ? <span className="status-good">✓ {eligibleFacilitators(c, data.volunteers, data.circles).map((v) => v.displayName).join(', ')} could facilitate</span>
+                      : <span className="status-warning">! No trained volunteer is free at that time yet</span>}
+                  </p>
+                </div>
+                <div className="proposal-actions">
+                  <label className="sr-only" htmlFor={`rn-${c.id}`}>Note to member</label>
+                  <input id={`rn-${c.id}`} placeholder="Note to member (optional)" value={reviewNotes[c.id] ?? ''} onChange={(e) => setReviewNotes({ ...reviewNotes, [c.id]: e.target.value })} />
+                  <div className="row">
+                    <button className="btn btn-small btn-primary" onClick={() => review(c.id, 'approve')}>Approve</button>
+                    <button className="btn btn-small" onClick={() => review(c.id, 'decline')}>Decline</button>
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div className="filters">
         {[7, 14].map((d) => (
           <button key={d} className={days === d ? 'filter on' : 'filter'} aria-pressed={days === d} onClick={() => setDays(d)}>Next {d} days</button>

@@ -9,8 +9,19 @@ export const TOPICS = [
   { key: 'career', label: 'Career change' },
   { key: 'loneliness', label: 'Loneliness' },
   { key: 'recovery', label: 'Recovery' },
+  { key: 'sexual-health', label: 'Sexual health & relationships' },
 ];
 export const topicLabel = (key) => TOPICS.find((t) => t.key === key)?.label ?? key;
+
+// Free, confidential lines shown next to topics where specialist help exists.
+export const TOPIC_RESOURCES = {
+  'sexual-health': [
+    { name: 'RAINN National Sexual Assault Hotline', detail: 'Call 800-656-4673, any time', href: 'tel:8006564673' },
+    { name: 'RAINN online chat', detail: 'Chat with a trained staff member', href: 'https://hotline.rainn.org/online' },
+    { name: 'love is respect', detail: 'Dating and relationship abuse: call 866-331-9474 or text LOVEIS to 22522', href: 'https://www.loveisrespect.org' },
+  ],
+  recovery: [{ name: 'SAMHSA National Helpline', detail: 'Treatment referrals: call 800-662-4357, any time', href: 'tel:8006624357' }],
+};
 
 export const DAYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'];
 export const DAY_NAMES = { mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat', sun: 'Sun' };

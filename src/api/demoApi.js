@@ -4,7 +4,7 @@ import { createService } from '../../shared/service.js';
 import { createMemoryRepo } from '../../shared/memoryRepo.js';
 import { DEMO_REPLIES, buildSampleData } from '../../shared/sampleData.js';
 
-const DATA_KEY = 'circle-up:demo-data:v1';
+const DATA_KEY = 'circle-up:demo-data:v2';
 const USER_KEY = 'circle-up:demo-user';
 
 const read = (k) => {
@@ -77,6 +77,7 @@ export const demoApi = {
   matches: () => call(() => svc.matches(userId)),
   block: (id) => call(() => svc.block(userId, id)),
   circles: () => call(() => svc.circles(userId)),
+  proposeCircle: (body) => call(() => svc.proposeCircle(userId, body)),
   joinCircle: (id) => call(() => svc.joinCircle(userId, id)),
   leaveCircle: (id) => call(() => svc.leaveCircle(userId, id)),
   conversations: () => call(() => svc.conversations(userId)),
@@ -88,6 +89,7 @@ export const demoApi = {
   requestReferral: (body) => call(() => svc.requestReferral(userId, body)),
   overview: () => call(() => svc.overview(userId)),
   assignFacilitator: (circleId, volunteerId) => call(() => svc.assignFacilitator(userId, circleId, volunteerId)),
+  reviewCircle: (id, decision, note) => call(() => svc.reviewCircle(userId, id, decision, note)),
   moveReferral: (id, status, note) => call(() => svc.moveReferral(userId, id, status, note)),
   resolveReport: (id) => call(() => svc.resolveReport(userId, id)),
 

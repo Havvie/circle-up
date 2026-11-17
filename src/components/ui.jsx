@@ -1,5 +1,5 @@
 import React from 'react';
-import { CRISIS, topicLabel } from '../../shared/constants.js';
+import { CRISIS, TOPIC_RESOURCES, topicLabel } from '../../shared/constants.js';
 import { initials } from '../lib/format.js';
 
 const TONES = 6;
@@ -72,6 +72,37 @@ export function SafetyPanel({ onClose }) {
       </div>
       <p className="small muted">If you are in immediate danger, call 911.</p>
       {onClose && <button className="link" onClick={onClose}>Close</button>}
+    </div>
+  );
+}
+
+export function TopicResources({ topic, compact = false }) {
+  const lines = TOPIC_RESOURCES[topic];
+  if (!lines) return null;
+  if (compact) {
+    return (
+      <p className="topic-resources compact small">
+        Confidential support any time:{' '}
+        {lines.map((r, i) => (
+          <React.Fragment key={r.name}>
+            {i > 0 && ' · '}
+            <a href={r.href} target={r.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">{r.name}</a>
+          </React.Fragment>
+        ))}
+      </p>
+    );
+  }
+  return (
+    <div className="topic-resources">
+      <strong className="small">Confidential support for {topicLabel(topic).toLowerCase()}, any time:</strong>
+      <ul>
+        {lines.map((r) => (
+          <li key={r.name}>
+            <a href={r.href} target={r.href.startsWith('http') ? '_blank' : undefined} rel="noreferrer">{r.name}</a>
+            <span className="muted"> · {r.detail}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

@@ -1,30 +1,41 @@
-# Circle Up: Peer Support Platform
+# Circle Up: A Place to Connect
 
-A full-stack web app that connects people going through similar experiences for peer support, and helps them reach a licensed counselor when they need more.
+*In a world full of uncertainty, Circle Up gives people a time and a place to connect with others who understand what they're going through.*
 
-- **Peer matching.** Members choose the experiences they relate to (caregiving, grief, career change and others) and when they're free. The app ranks peers by what they share and explains each match.
-- **Support circles.** Small group sessions led by trained volunteer facilitators. Members save a seat; coordinators see which sessions still need a facilitator and who is eligible to lead them.
-- **Real-time chat.** One-on-one and circle group chat over WebSockets, with report and block.
-- **Counselor referrals.** Members describe what they need, see matching counselors by specialty, insurance, language and format, and request a first consult. Coordinators track every request from *requested* to *scheduled*.
-- **Safety by design.** Crisis resources (988, 911) are on every screen. Messages with crisis language immediately show the sender crisis resources and put the message in a coordinator's safety queue.
+Circle Up is a full-stack web app that brings people together around shared life experiences, like caring for a parent, grieving a loss, changing careers, adjusting to new parenthood, navigating relationships and sexual health, or feeling isolated. Members find others who have been through something similar, talk one-on-one, and meet in small support circles led by trained volunteers. When someone needs more than a listening ear, the app helps them reach a licensed counselor.
 
-**[Live demo](https://havvie.github.io/circle-up/)** · Pick "member" or "coordinator". No sign-up. Every person, counselor and message is made up.
+**[Live demo](https://havvie.github.io/circle-up/)** · Choose "member" or "coordinator". No sign-up needed. Every person, counselor and message in the demo is made up.
 
-![Member home](docs/screenshots/home.png)
+![Circle Up member home: next circle, recent messages, suggested peers and circles](docs/screenshots/home.png)
+
+- **Connect with people like you.** Pick the experiences you relate to and when you're free, and Circle Up suggests people you have the most in common with, along with the reasons why.
+- **Show up together.** Save a seat in a small group circle that meets at a set time each week.
+- **Start your own circle.** Suggest a new group with a topic, time and size. A coordinator approves it and pairs it with a trained facilitator.
+- **Keep the conversation going.** Private one-on-one and group chat, live, with report and block built in.
+- **Get more help when you need it.** Request a consult with a counselor who fits your needs, insurance and schedule.
+- **Safe by design.** Crisis resources are on every screen, and topics like sexual health and recovery show their own confidential support lines (RAINN, love is respect, SAMHSA). Messages that suggest someone is in crisis are flagged so a coordinator can check in.
 
 > **Circle Up is a portfolio project.** It is designed as peer support, not therapy or emergency care, and it is not a real service. If you or someone you know is in crisis, call or text **988** (US), or call **911** in an emergency.
 
 ## Why I built this
 
-I spent 9+ years as a teacher, most recently running Early Intervention groups and coordinating support across families, specialists and staff. A lot of that job is logistics in service of people: getting the right person into the right group at the right time, noticing who needs more help, and handing off to a professional when that's what a situation calls for.
+As a teacher, I've seen how much it helps when someone feels understood. A student who finally meets a classmate going through the same thing, or a parent who realizes other families are facing the same challenges, starts to feel less alone. That connection doesn't happen by accident. Someone has to create the time and the place for it.
 
-Peer support programs run on the same work. Circle Up is my take on the tool a small nonprofit or community program would need: a warm, simple experience for members, and a clear "what needs attention" view for the coordinator who keeps it all running.
+Life feels uncertain for a lot of people right now, and many don't have a group of people who get it. I built Circle Up to make it easy to find them. The member side is designed to feel warm and simple. The coordinator side handles the behind-the-scenes work that keeps a support program running: staffing sessions, following up on counselor requests, and making sure no one in crisis goes unnoticed.
 
 ## Screenshots
 
 | Find peers | Support circles |
 |---|---|
 | ![Peer matches with reasons](docs/screenshots/peers.png) | ![Circles grouped by day](docs/screenshots/circles.png) |
+
+| Start a circle | Approving a member's circle |
+|---|---|
+| ![Form to suggest a new circle](docs/screenshots/start-circle.png) | ![Coordinator reviewing suggested circles](docs/screenshots/proposals.png) |
+
+| Topic support lines |
+|---|
+| ![Sexual health and relationships circles with RAINN and love is respect support lines](docs/screenshots/circles-sh.png) |
 
 | Crisis response in chat | Counselor referral |
 |---|---|
@@ -52,6 +63,9 @@ Each candidate gets a score from 0 to 1:
 - **10%** a shared preferred format (one-on-one or group)
 
 People with no topics in common, people either side has blocked, and people who opted out are never suggested. Each match lists plain-English reasons ("You both chose Caregiving and Stress & burnout", "Both free Tue evenings").
+
+### Member-created circles
+Any member can suggest a circle: a name, topic, date and time (at least a day ahead), length and number of seats. It stays visible only to them until a coordinator approves it, and the coordinator sees right away which trained volunteers could facilitate at that time. Approved circles open for sign-ups; declined ones show the member the coordinator's note.
 
 ### Staffing circles
 A volunteer can facilitate a circle only if they are trained on its topic, free at that time, and not already leading an overlapping circle. The coverage view lists only eligible volunteers, and flags circles where nobody is free so the coordinator can recruit or reschedule.

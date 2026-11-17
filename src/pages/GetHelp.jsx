@@ -5,7 +5,7 @@ import { REFERRAL_STATUSES, TOPICS, topicLabel } from '../../shared/constants.js
 import { matchCounselors } from '../../shared/referrals.js';
 import { INSURANCE } from '../../shared/sampleData.js';
 import { fmtDayTime } from '../lib/format.js';
-import { ErrorNote, Loading } from '../components/ui.jsx';
+import { ErrorNote, Loading, TopicResources } from '../components/ui.jsx';
 
 const LANGUAGES = ['English', 'Spanish', 'Vietnamese', 'Arabic', 'French', 'Hebrew'];
 
@@ -74,6 +74,9 @@ export default function GetHelp({ user }) {
               ))}
             </div>
           </fieldset>
+          {req.concerns.filter((c) => c === 'sexual-health' || c === 'recovery').map((c) => (
+            <TopicResources key={c} topic={c} />
+          ))}
           <div className="form-row">
             <label>
               Insurance

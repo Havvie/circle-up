@@ -86,6 +86,7 @@ export function createApp({ repo, jwtSecret, corsOrigin = '*', now }) {
   api.post('/people/:id/block', handle((req) => service.block(req.userId, req.params.id)));
 
   api.get('/circles', handle((req) => service.circles(req.userId)));
+  api.post('/circles', handle((req) => service.proposeCircle(req.userId, req.body)));
   api.post('/circles/:id/join', handle((req) => service.joinCircle(req.userId, req.params.id)));
   api.post('/circles/:id/leave', handle((req) => service.leaveCircle(req.userId, req.params.id)));
 
@@ -108,6 +109,7 @@ export function createApp({ repo, jwtSecret, corsOrigin = '*', now }) {
 
   api.get('/coordinator/overview', handle((req) => service.overview(req.userId)));
   api.post('/coordinator/circles/:id/facilitator', handle((req) => service.assignFacilitator(req.userId, req.params.id, req.body.volunteerId)));
+  api.post('/coordinator/circles/:id/review', handle((req) => service.reviewCircle(req.userId, req.params.id, req.body.decision, req.body.note)));
   api.post('/coordinator/referrals/:id/status', handle((req) => service.moveReferral(req.userId, req.params.id, req.body.status, req.body.note)));
   api.post('/coordinator/reports/:id/resolve', handle((req) => service.resolveReport(req.userId, req.params.id)));
 

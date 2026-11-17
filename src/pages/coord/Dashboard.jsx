@@ -30,6 +30,7 @@ export default function Dashboard() {
       text: `${r.circle.title} (${fmtDayTime(r.circle.startsAt)}) needs a facilitator. ${r.candidates.length ? `${r.candidates.length} volunteer${r.candidates.length > 1 ? 's' : ''} available.` : 'No trained volunteer is free.'}`,
       href: '#/coord/coverage',
     })),
+    ...data.proposals.map((c) => ({ key: c.id, level: 'warning', text: `${data.people[c.proposedBy]?.displayName} suggested a new circle: "${c.title}". Review it.`, href: '#/coord/coverage' })),
     ...stale.map((r) => ({ key: r.id, level: 'warning', text: `${data.people[r.memberId]?.displayName}'s counselor request has waited ${daysOpen(r)} days.`, href: '#/coord/referrals' })),
   ];
 

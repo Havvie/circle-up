@@ -299,6 +299,25 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .progress-steps .done, .progress-steps .current { color: var(--primary); }
 .progress-steps .current { font-weight: 700; }
 
+/* Start a circle, proposals, topic resources */
+.page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.start-circle { margin: 8px 0 20px; border-color: var(--primary); }
+.start-circle .form-row { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.notice-card { background: var(--primary-soft); border-color: transparent; color: var(--text); }
+.circle-card.pending { border-style: dashed; background: var(--surface-2); box-shadow: none; }
+.topic-resources { margin: 0 0 16px; padding: 12px 16px; border-radius: 12px; background: var(--surface-2); border-left: 4px solid var(--primary); }
+.topic-resources ul { margin: 4px 0 0; padding-left: 18px; font-size: 0.9rem; }
+.topic-resources.compact { margin: 8px 0 4px; padding: 8px 12px; }
+.topic-resources.compact { border-left-width: 3px; }
+.proposals { margin-bottom: 16px; border-left: 4px solid var(--warning); }
+.proposals ul { list-style: none; margin: 8px 0 0; padding: 0; }
+.proposal { display: grid; grid-template-columns: 1fr 300px; gap: 16px; padding: 12px 0; border-top: 1px solid var(--border); }
+.proposal:first-child { border-top: 0; }
+.proposal p { margin: 4px 0 0; }
+.proposal-actions { display: flex; flex-direction: column; gap: 8px; }
+.proposal-actions input { padding: 7px 10px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--surface); }
+@media (max-width: 760px) { .proposal { grid-template-columns: 1fr; } }
+
 /* Coordinator */
 .tiles { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin: 20px 0; }
 .tile { display: flex; flex-direction: column; gap: 2px; text-decoration: none; color: inherit; padding: 16px; }

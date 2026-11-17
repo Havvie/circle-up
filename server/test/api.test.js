@@ -140,6 +140,34 @@ describe('counselor referrals', () => {
   });
 });
 
+describe('member-proposed circles', () => {
+  const inDays = (d) => new Date(Date.now() + d * 86400000).toISOString();
+  const body = { title: 'Sunday reset', topic: 'sexual-health', description: 'Boundaries and healthy relationships', startsAt: inDays(5), durationMin: 60, capacity: 6 };
+  let id;
+  it('lets a member suggest a circle that only they can see until it is approved', async () => {
+    const res = await as('jordan').post('/api/circles', body);
+    expect(res.status).toBe(200);
+    expect(res.body.status).toBe('proposed');
+    expect(res.body.members).toEqual(['u-jordan']);
+    id = res.body.id;
+    expect((await as('maya').get('/api/circles')).body.some((c) => c.id === id)).toBe(false);
+    expect((await as('maya').post(`/api/circles/${id}/join`)).status).toBe(409);
+  });
+  it('rejects circles that are too soon, too big, or have no topic', async () => {
+    expect((await as('jordan').post('/api/circles', { ...body, startsAt: inDays(0.2) })).status).toBe(400);
+    expect((await as('jordan').post('/api/circles', { ...body, capacity: 50 })).status).toBe(400);
+    expect((await as('jordan').post('/api/circles', { ...body, topic: 'nope' })).status).toBe(400);
+  });
+  it('only coordinators can approve, and approval opens it to everyone', async () => {
+    expect((await as('jordan').post(`/api/coordinator/circles/${id}/review`, { decision: 'approve' })).status).toBe(403);
+    expect((await as('sam').get('/api/coordinator/overview')).body.proposals.some((c) => c.id === id)).toBe(true);
+    const res = await as('sam').post(`/api/coordinator/circles/${id}/review`, { decision: 'approve' });
+    expect(res.body.status).toBe('approved');
+    expect((await as('sam').post(`/api/coordinator/circles/${id}/review`, { decision: 'decline' })).status).toBe(409);
+    expect((await as('maya').post(`/api/circles/${id}/join`)).status).toBe(200);
+  });
+});
+
 describe('coordinator', () => {
   it('only assigns a facilitator who is trained and free', async () => {
     // Marcus is not trained to lead grief circles.
